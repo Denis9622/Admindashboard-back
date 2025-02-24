@@ -21,7 +21,12 @@ import dashboardRoutes from './routes/dashboardRoutes.js';
 
 dotenv.config();
 const app = express();
-app.use(cors({ credentials: true, origin: 'http://localhost:5173' }));
+app.use(
+  cors({
+    credentials: true,
+    origin: 'https://admindashboard-nine-azure.vercel.app',
+  }),
+);
 app.use(express.json());
 app.use(cookieParser());
 app.use('/api/products', productRoutes);
