@@ -99,6 +99,7 @@ export async function loginUserController(req, res, next) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       maxAge: 30 * 24 * 60 * 60 * 1000,
+      sameSite: 'None',
     });
 
     res.status(200).json({
@@ -127,7 +128,7 @@ export async function logoutUserController(req, res, next) {
     res.clearCookie('refreshToken', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'None',
     });
 
     console.log('✅ Logout successful, refresh token removed.');
