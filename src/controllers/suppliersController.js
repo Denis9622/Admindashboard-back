@@ -12,20 +12,29 @@ export async function getAllSuppliers(req, res, next) {
 }
 
 // 📌 Добавить нового поставщика (POST)
-export async function createSupplier(req, res, next) {
+export async function createSupplier(req, res) {
   try {
-    const { name, company, address, phone } = req.body;
+    const { name, company, address, phone, amount } = req.body;
+
+    if (!amount || amount < 0) {
+      return res
+        .status(400)
+        .json({ message: 'Сумма закупки (amount) должна быть положительной' });
+    }
+
     const newSupplier = await Supplier.create({
       name,
       company,
       address,
       phone,
+      amount,
     });
     res.status(201).json(newSupplier);
   } catch (error) {
-    next(createHttpError(500, 'Ошибка добавления поставщика'));
+    res.status(500).json({ message: 'Ошибка добавления поставщика' });
   }
 }
+
 
 // 📌 Обновить поставщика (PUT)
 export async function updateSupplier(req, res, next) {

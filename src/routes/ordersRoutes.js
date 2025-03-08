@@ -1,13 +1,14 @@
 import express from 'express';
-import { authMiddleware } from '../middleware/authMiddleware.js';
 import Order from '../models/order.js';
+import Customer from '../models/customer.js';
+import { authMiddleware } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// 📌 GET: Получить список заказов
+// 📌 GET: Получить список заказов с клиентами
 router.get('/', authMiddleware, async (req, res) => {
   try {
-    const orders = await Order.find();
+    const orders = await Order.find().populate('customer', 'name email'); // ✅ Подтягиваем имя и email клиента
     res.json(orders);
   } catch (error) {
     console.error('Ошибка сервера при получении заказов:', error);
@@ -18,9 +19,17 @@ router.get('/', authMiddleware, async (req, res) => {
 // 📌 POST: Добавить новый заказ
 router.post('/', authMiddleware, async (req, res) => {
   try {
-    const { userInfo, address, products, orderDate, price, status } = req.body;
+    const { customerId, address, products, orderDate, price, status } =
+      req.body;
+
+    if (!customerId)
+      return res.status(400).json({ message: 'customerId обязателен' });
+
+    const customer = await Customer.findById(customerId);
+    if (!customer) return res.status(400).json({ message: 'Клиент не найден' });
+
     const newOrder = new Order({
-      userInfo,
+      customer: customer._id, // ✅ Связь с клиентом
       address,
       products,
       orderDate,
@@ -28,6 +37,7 @@ router.post('/', authMiddleware, async (req, res) => {
       status,
     });
     await newOrder.save();
+
     res.status(201).json(newOrder);
   } catch (error) {
     console.error('Ошибка сервера при добавлении заказа:', error);

@@ -24,9 +24,13 @@ const app = express();
 app.use(
   cors({
     credentials: true,
-    origin: 'https://admindashboard-nine-azure.vercel.app',
+    origin: [
+      'http://localhost:5173',
+      'https://admindashboard-nine-azure.vercel.app',
+    ],
   }),
 );
+
 app.use(express.json());
 app.use(cookieParser());
 app.use('/api/products', productRoutes);
@@ -34,6 +38,12 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/customers', customersRoutes);
 app.use('/api/suppliers', suppliersRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use((err, req, res, next) => {
+  console.error('Ошибка:', err.message);
+  res
+    .status(err.status || 500)
+    .json({ message: err.message || 'Внутренняя ошибка сервера' });
+});
 
 
 

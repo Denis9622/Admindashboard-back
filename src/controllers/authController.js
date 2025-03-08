@@ -102,28 +102,49 @@ export async function loginUserController(req, res, next) {
       sameSite: 'None',
     });
 
+    // ✅ Добавляем `user` в ответ
     res.status(200).json({
       status: 200,
       message: 'Пользователь успешно авторизован!',
-      data: { accessToken, refreshToken },
+      data: {
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+        },
+        accessToken,
+        refreshToken,
+      },
     });
   } catch (error) {
     next(error);
   }
 }
 
+
+
+
 export async function logoutUserController(req, res, next) {
   try {
-    console.log('Cookies received in logout request:', req.cookies); // ЛОГ ДЛЯ ПРОВЕРКИ
+    console.log('Cookies received in logout request:', req.cookies);
 
-    const { refreshToken } = req.cookies;
+    let refreshToken = req.cookies.refreshToken;
 
-    if (!refreshToken) {
-      console.error('🚨 Ошибка: Refresh token отсутствует в cookies!');
-      throw createHttpError(401, 'Refresh token required');
+    // 🔹 Проверяем localStorage как fallback
+    if (!refreshToken && req.headers.authorization) {
+      refreshToken = req.headers.authorization.replace('Bearer ', '');
     }
 
-    await Session.findOneAndDelete({ refreshToken });
+    if (!refreshToken) {
+      console.error('🚨 Ошибка: Refresh token отсутствует!');
+      return res.status(401).json({ error: 'Refresh token required' });
+    }
+
+    const session = await Session.findOneAndDelete({ refreshToken });
+    if (!session) {
+      console.error('🚨 Ошибка: Сессия не найдена!');
+      return res.status(401).json({ error: 'Invalid refresh token' });
+    }
 
     res.clearCookie('refreshToken', {
       httpOnly: true,
@@ -134,9 +155,12 @@ export async function logoutUserController(req, res, next) {
     console.log('✅ Logout successful, refresh token removed.');
     res.status(204).send();
   } catch (error) {
+    console.error('Logout error:', error.message);
     next(error);
   }
 }
+
+
 
 
 export async function refreshTokenController(req, res, next) {
