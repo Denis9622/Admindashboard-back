@@ -41,12 +41,17 @@ export const authMiddleware = async (req, res, next) => {
         return res.status(403).json({ message: 'Invalid refresh token' });
       }
 
+      // Проверка срока действия refreshToken
+      if (new Date() > session.refreshTokenValidUntil) {
+        return res.status(403).json({ message: 'Refresh token expired' });
+      }
+
       const newAccessToken = jwt.sign({ userId: session.userId }, JWT_SECRET, {
         expiresIn: '15m',
       });
 
       session.accessToken = newAccessToken;
-      session.accessTokenValidUntil = new Date(Date.now() + 59 * 60 * 1000);
+      session.accessTokenValidUntil = new Date(Date.now() + 15 * 60 * 1000);
       await session.save();
 
       res.setHeader('Authorization', `Bearer ${newAccessToken}`);

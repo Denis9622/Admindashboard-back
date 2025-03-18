@@ -121,9 +121,6 @@ export async function loginUserController(req, res, next) {
   }
 }
 
-
-
-
 export async function logoutUserController(req, res, next) {
   try {
     console.log('Cookies received in logout request:', req.cookies);
@@ -160,12 +157,15 @@ export async function logoutUserController(req, res, next) {
   }
 }
 
-
-
-
 export async function refreshTokenController(req, res, next) {
   try {
-    const { refreshToken } = req.cookies;
+    let refreshToken = req.cookies.refreshToken;
+
+    // 🔹 Проверяем заголовки как fallback
+    if (!refreshToken && req.headers.authorization) {
+      refreshToken = req.headers.authorization.replace('Bearer ', '');
+    }
+
     if (!refreshToken) {
       throw createHttpError(401, 'Refresh token required');
     }
@@ -173,6 +173,11 @@ export async function refreshTokenController(req, res, next) {
     const session = await Session.findOne({ refreshToken });
     if (!session) {
       throw createHttpError(403, 'Invalid refresh token');
+    }
+
+    // Проверка срока действия refreshToken
+    if (new Date() > session.refreshTokenValidUntil) {
+      throw createHttpError(403, 'Refresh token expired');
     }
 
     const newAccessToken = jwt.sign({ userId: session.userId }, JWT_SECRET, {

@@ -35,37 +35,42 @@ export async function getRecentCustomers(req, res) {
 // 📌 Получить доходы и расходы по датам
 export async function getIncomeExpenses(req, res) {
   try {
-    let { startDate, endDate } = req.query;
+    const { startDate, endDate } = req.query;
 
-    // Если даты не переданы — берем все данные
+    // Фильтр по датам
     const dateFilter =
       startDate && endDate
-        ? { createdAt: { $gte: new Date(startDate), $lte: new Date(endDate) } }
+        ? { orderDate: { $gte: new Date(startDate), $lte: new Date(endDate) } }
         : {};
 
-    // Получаем заказы (доходы) и закупки (расходы)
-    const orders = await Order.find(dateFilter);
+    // Получение доходов (Orders) с полем `customer` из модели Customer
+    const orders = await Order.find(dateFilter).populate('customer');
+
+    // Получение расходов (Expenses)
     const expenses = await Supplier.find(dateFilter);
 
-    // Формируем список транзакций
+    // Формирование транзакций
     const transactions = [
       ...orders.map((order) => ({
         type: 'Income',
-        name: order.customerName,
+        name: order.customer.name || 'Unknown Customer', // Доступ к имени клиента
         amount: order.price,
       })),
       ...expenses.map((expense) => ({
         type: 'Expense',
-        name: expense.company,
-        amount: -expense.amount, // Минус для расходов
+        name: expense.company || 'Unknown Supplier', // Имя поставщика
+        amount: -Math.abs(expense.amount),
       })),
     ];
 
     res.status(200).json({ transactions });
+    console.log('Transactions sent:', transactions); // Проверяем результат
   } catch (error) {
-    res.status(500).json({ message: 'Ошибка загрузки транзакций' });
+    console.error('Error fetching transactions:', error);
+    res.status(500).json({ message: 'Error fetching transactions' });
   }
 }
+
 
 
 
