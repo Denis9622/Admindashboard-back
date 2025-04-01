@@ -7,6 +7,7 @@ export async function getAllCustomers(req, res, next) {
     const customers = await Customer.find();
     res.status(200).json(customers);
   } catch (error) {
+    console.error(error);
     next(createHttpError(500, 'Ошибка загрузки клиентов'));
   }
 }
@@ -18,6 +19,7 @@ export async function createCustomer(req, res, next) {
     const newCustomer = await Customer.create({ name, email, address, phone });
     res.status(201).json(newCustomer);
   } catch (error) {
+    console.error(error);
     next(createHttpError(500, 'Ошибка добавления клиента'));
   }
 }

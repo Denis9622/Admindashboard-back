@@ -6,7 +6,7 @@ export async function getAllSuppliers(req, res, next) {
   try {
     const suppliers = await Supplier.find();
     res.status(200).json(suppliers);
-  } catch (error) {
+  } catch {
     next(createHttpError(500, 'Ошибка загрузки поставщиков'));
   }
 }
@@ -14,24 +14,37 @@ export async function getAllSuppliers(req, res, next) {
 // 📌 Добавить нового поставщика (POST)
 export async function createSupplier(req, res) {
   try {
-    const { name, company, address, phone, amount } = req.body;
+    const { name, company, address, amount, deliveryDate, status } = req.body;
 
+    // Валидация необходимых данных
     if (!amount || amount < 0) {
       return res
         .status(400)
         .json({ message: 'Сумма закупки (amount) должна быть положительной' });
     }
 
+    if (!deliveryDate) {
+      return res.status(400).json({ message: 'Дата доставки (deliveryDate) обязательна' });
+    }
+
+    if (!status) {
+      return res.status(400).json({ message: 'Статус (status) обязателен' });
+    }
+
+    // Создание нового поставщика
     const newSupplier = await Supplier.create({
       name,
       company,
       address,
-      phone,
       amount,
+      deliveryDate,
+      status,
     });
+
     res.status(201).json(newSupplier);
   } catch (error) {
-    res.status(500).json({ message: 'Ошибка добавления поставщика' });
+    console.error("Ошибка при добавлении поставщика:", error.message); // Логирование ошибки
+    res.status(500).json({ message: 'Ошибка добавления поставщика', error: error.message });
   }
 }
 

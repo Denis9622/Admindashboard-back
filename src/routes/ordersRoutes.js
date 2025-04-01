@@ -1,12 +1,11 @@
 import express from 'express';
 import Order from '../models/order.js';
 import Customer from '../models/customer.js';
-import { authMiddleware } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // 📌 GET: Получить список заказов с клиентами
-router.get('/', authMiddleware, async (req, res) => {
+router.get('/',  async (req, res) => {
   try {
     const orders = await Order.find().populate('customer', 'name email'); // ✅ Подтягиваем имя и email клиента
     res.json(orders);
@@ -17,7 +16,7 @@ router.get('/', authMiddleware, async (req, res) => {
 });
 
 // 📌 POST: Добавить новый заказ
-router.post('/', authMiddleware, async (req, res) => {
+router.post('/',  async (req, res) => {
   try {
     const { customerId, address, products, orderDate, price, status } =
       req.body;
@@ -46,7 +45,7 @@ router.post('/', authMiddleware, async (req, res) => {
 });
 
 // 📌 PUT: Обновить заказ
-router.put('/:id', authMiddleware, async (req, res) => {
+router.put('/:id',  async (req, res) => {
   try {
     const updatedOrder = await Order.findByIdAndUpdate(
       req.params.id,
@@ -61,7 +60,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
 });
 
 // 📌 DELETE: Удалить заказ
-router.delete('/:id', authMiddleware, async (req, res) => {
+router.delete('/:id',  async (req, res) => {
   try {
     await Order.findByIdAndDelete(req.params.id);
     res.json({ message: 'Заказ удален' });

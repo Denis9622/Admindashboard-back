@@ -15,7 +15,7 @@ export async function getDashboardStatistics(req, res) {
     res
       .status(200)
       .json({ totalProducts, totalSuppliers, totalCustomers, totalOrders });
-  } catch (error) {
+  } catch {
     res.status(500).json({ message: 'Ошибка загрузки статистики' });
   }
 }
@@ -27,7 +27,7 @@ export async function getRecentCustomers(req, res) {
       .sort({ createdAt: -1 })
       .limit(5);
     res.status(200).json(recentCustomers);
-  } catch (error) {
+  } catch {
     res.status(500).json({ message: 'Ошибка загрузки клиентов' });
   }
 }
@@ -37,37 +37,57 @@ export async function getIncomeExpenses(req, res) {
   try {
     const { startDate, endDate } = req.query;
 
-    // Фильтр по датам
-    const dateFilter =
-      startDate && endDate
-        ? { orderDate: { $gte: new Date(startDate), $lte: new Date(endDate) } }
-        : {};
+    // Валидация дат
+    let dateFilter = {};
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
 
-    // Получение доходов (Orders) с полем `customer` из модели Customer
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        return res.status(400).json({
+          message: 'Invalid date format',
+        });
+      }
+
+      dateFilter = {
+        orderDate: {
+          $gte: start,
+          $lte: end,
+        },
+      };
+    }
+
+    // Получение заказов с безопасным доступом к данным
     const orders = await Order.find(dateFilter).populate('customer');
+    const orderTransactions = orders.map((order) => ({
+      type: 'Income',
+      name: order.customer?.name || 'Unknown Customer',
+      amount: order.price || 0,
+      date: order.orderDate,
+    }));
 
-    // Получение расходов (Expenses)
+    // Получение расходов с безопасным доступом к данным
     const expenses = await Supplier.find(dateFilter);
+    const expenseTransactions = expenses.map((expense) => ({
+      type: 'Expense',
+      name: expense.company || 'Unknown Supplier',
+      amount: -Math.abs(expense.amount || 0),
+      date: expense.deliveryDate,
+    }));
 
-    // Формирование транзакций
-    const transactions = [
-      ...orders.map((order) => ({
-        type: 'Income',
-        name: order.customer.name || 'Unknown Customer', // Доступ к имени клиента
-        amount: order.price,
-      })),
-      ...expenses.map((expense) => ({
-        type: 'Expense',
-        name: expense.company || 'Unknown Supplier', // Имя поставщика
-        amount: -Math.abs(expense.amount),
-      })),
-    ];
+    // Сортировка транзакций по дате
+    const transactions = [...orderTransactions, ...expenseTransactions].sort(
+      (a, b) => new Date(b.date) - new Date(a.date),
+    );
 
+    console.log('Transactions prepared:', transactions);
     res.status(200).json({ transactions });
-    console.log('Transactions sent:', transactions); // Проверяем результат
   } catch (error) {
     console.error('Error fetching transactions:', error);
-    res.status(500).json({ message: 'Error fetching transactions' });
+    res.status(500).json({
+      message: 'Error fetching transactions',
+      details: error.message,
+    });
   }
 }
 
@@ -94,7 +114,7 @@ export async function getCustomersWithSpent(req, res, next) {
     );
 
     res.status(200).json(customersWithSpent);
-  } catch (error) {
+  } catch {
     next(createHttpError(500, 'Ошибка загрузки клиентов с их тратами'));
   }
 }
@@ -105,7 +125,7 @@ export async function getAllOrders(req, res) {
   try {
     const orders = await Order.find().populate('customer'); // ✅ Теперь подтягивает имя клиента
     res.status(200).json(orders);
-  } catch (error) {
+  } catch {
     res.status(500).json({ message: 'Ошибка загрузки заказов' });
   }
 }
