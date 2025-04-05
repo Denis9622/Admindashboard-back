@@ -18,7 +18,7 @@ app.use(
     credentials: true,
     origin: [
       'http://localhost:5173',
-      'https://admindashboard-nine-azure.vercel.app',
+      'https://admindashboard-ten-chi.vercel.app',
     ],
   }),
 );
