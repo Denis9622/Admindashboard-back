@@ -4,10 +4,10 @@ const supplierSchema = new mongoose.Schema({
   name: { type: String, required: true },
   company: { type: String, required: true },
   address: { type: String, required: true },
-  amount: { type: Number, required: true }, // Сумма закупки
-  deliveryDate: { type: Date, required: true }, // Дата доставки
-  status: { type: String, required: true }, // Статус
-  createdAt: { type: Date, default: Date.now }, // Дата создания записи
+  amount: { type: Number, required: true }, 
+  deliveryDate: { type: Date, required: true }, 
+  status: { type: String, required: true }, 
+  createdAt: { type: Date, default: Date.now }, 
 });
 
 export default mongoose.model('Supplier', supplierSchema);

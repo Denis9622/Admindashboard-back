@@ -113,6 +113,10 @@ export async function loginUserController(req, res, next) {
       expiresIn: REFRESH_TOKEN_EXPIRES_IN,
     });
 
+    // Удаляем старую сессию если она существует
+    await Session.deleteMany({ userId: user._id });
+
+    // Создаем новую сессию
     await Session.create({
       userId: user._id,
       accessToken,
@@ -121,14 +125,16 @@ export async function loginUserController(req, res, next) {
       refreshTokenValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     });
 
+    // Обновленные настройки куки
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 30 * 24 * 60 * 60 * 1000,
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 дней
       sameSite: 'None',
+      path: '/',
+      domain: process.env.NODE_ENV === 'production' ? 'your-domain.com' : 'localhost'
     });
 
-    // ✅ Добавляем `user` в ответ
     res.status(200).json({
       status: 200,
       message: 'Пользователь успешно авторизован!',
