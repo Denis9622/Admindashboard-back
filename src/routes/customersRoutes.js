@@ -8,9 +8,9 @@ import {
 
 const router = express.Router();
 
-router.get('/', getAllCustomers); // Получить всех клиентов
-router.post('/', createCustomer); // Добавить нового клиента
-router.put('/:id', updateCustomer); // Обновить клиента
-router.delete('/:id', deleteCustomer); // Удалить клиента
+router.get('/', getAllCustomers); 
+router.post('/', createCustomer);
+router.put('/:id', updateCustomer); 
+router.delete('/:id', deleteCustomer);
 
 export default router;

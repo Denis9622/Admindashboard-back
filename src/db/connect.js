@@ -6,7 +6,6 @@ dotenv.config();
 
 export const initMongoDB = async () => {
   try {
-    // Используйте функцию getEnvVar для получения переменных окружения
     const user = getEnvVar('MONGODB_USER');
     const pwd = getEnvVar('MONGODB_PASSWORD');
     const url = getEnvVar('MONGODB_URL');
@@ -17,7 +16,6 @@ export const initMongoDB = async () => {
     console.log('MONGODB_URL:', url);
     console.log('MONGODB_DB:', db);
 
-    // Создайте строку подключения с полученными значениями
     await mongoose.connect(
       `mongodb+srv://${user}:${pwd}@${url}/${db}?retryWrites=true&w=majority`,
       { useNewUrlParser: true, useUnifiedTopology: true },

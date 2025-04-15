@@ -26,7 +26,6 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-// Подключение маршрутов
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);

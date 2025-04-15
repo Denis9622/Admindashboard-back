@@ -3,17 +3,15 @@ import Product from '../models/product.js';
 
 const router = express.Router();
 
-// 📌 GET: Получить список товаров
 router.get('/', async (req, res) => {
   try {
     const products = await Product.find();
     res.json(products);
   } catch (error) {
-    res.status(500).json({ message: 'Ошибка сервера' });
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
-// 📌 POST: Добавить новый товар
 router.post('/',  async (req, res) => {
   try {
     const { name, category, stock, suppliers, price } = req.body;
@@ -21,11 +19,10 @@ router.post('/',  async (req, res) => {
     await newProduct.save();
     res.status(201).json(newProduct);
   } catch (error) {
-    res.status(500).json({ message: 'Ошибка сервера' });
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
-// 📌 PUT: Обновить товар
 router.put('/:id',  async (req, res) => {
   try {
     const updatedProduct = await Product.findByIdAndUpdate(
@@ -35,17 +32,16 @@ router.put('/:id',  async (req, res) => {
     );
     res.json(updatedProduct);
   } catch (error) {
-    res.status(500).json({ message: 'Ошибка обновления' });
+    res.status(500).json({ message: 'Update error' });
   }
 });
 
-// 📌 DELETE: Удалить товар
 router.delete('/:id', async (req, res) => {
   try {
     await Product.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Товар удален' });
+    res.json({ message: 'Product removed' });
   } catch (error) {
-    res.status(500).json({ message: 'Ошибка удаления' });
+    res.status(500).json({ message: 'Uninstall error' });
   }
 });
 

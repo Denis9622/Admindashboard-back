@@ -5,7 +5,7 @@ const orderSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Customer',
     required: true,
-  }, // ✅ Связь с клиентом
+  },
   address: { type: String, required: true },
   products: { type: [String], required: true },
   orderDate: { type: Date, required: true },

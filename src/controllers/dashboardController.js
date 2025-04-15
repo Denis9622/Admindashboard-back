@@ -4,7 +4,6 @@ import Product from '../models/product.js';
 import Supplier from '../models/supplier.js';
 import createHttpError from 'http-errors';
 
-// 📌 Получить статистику (Общее количество заказов, клиентов, продуктов, поставщиков)
 export async function getDashboardStatistics(req, res) {
   try {
     const totalProducts = await Product.countDocuments();
@@ -16,11 +15,10 @@ export async function getDashboardStatistics(req, res) {
       .status(200)
       .json({ totalProducts, totalSuppliers, totalCustomers, totalOrders });
   } catch {
-    res.status(500).json({ message: 'Ошибка загрузки статистики' });
+    res.status(500).json({ message: 'Error loading statistics' });
   }
 }
 
-// 📌 Получить список последних клиентов
 export async function getRecentCustomers(req, res) {
   try {
     const recentCustomers = await Customer.find()
@@ -28,16 +26,14 @@ export async function getRecentCustomers(req, res) {
       .limit(5);
     res.status(200).json(recentCustomers);
   } catch {
-    res.status(500).json({ message: 'Ошибка загрузки клиентов' });
+    res.status(500).json({ message: 'Error loading customers' });
   }
 }
 
-// 📌 Получить доходы и расходы по датам
 export async function getIncomeExpenses(req, res) {
   try {
     const { startDate, endDate } = req.query;
 
-    // Валидация дат
     let dateFilter = {};
     if (startDate && endDate) {
       const start = new Date(startDate);
@@ -57,7 +53,6 @@ export async function getIncomeExpenses(req, res) {
       };
     }
 
-    // Получение заказов с безопасным доступом к данным
     const orders = await Order.find(dateFilter).populate('customer');
     const orderTransactions = orders.map((order) => ({
       type: 'Income',
@@ -66,7 +61,6 @@ export async function getIncomeExpenses(req, res) {
       date: order.orderDate,
     }));
 
-    // Получение расходов с безопасным доступом к данным
     const expenses = await Supplier.find(dateFilter);
     const expenseTransactions = expenses.map((expense) => ({
       type: 'Expense',
@@ -75,7 +69,6 @@ export async function getIncomeExpenses(req, res) {
       date: expense.deliveryDate,
     }));
 
-    // Сортировка транзакций по дате
     const transactions = [...orderTransactions, ...expenseTransactions].sort(
       (a, b) => new Date(b.date) - new Date(a.date),
     );
@@ -100,11 +93,10 @@ export async function getCustomersWithSpent(req, res, next) {
   try {
     const customers = await Customer.find();
 
-    // Считаем сумму заказов для каждого клиента
     const customersWithSpent = await Promise.all(
       customers.map(async (customer) => {
-        const orders = await Order.find({ customer: customer._id }); // ✅ Ищем заказы клиента
-        const totalSpent = orders.reduce((sum, order) => sum + order.price, 0); // ✅ Складываем сумму всех заказов
+        const orders = await Order.find({ customer: customer._id }); 
+        const totalSpent = orders.reduce((sum, order) => sum + order.price, 0); 
 
         return {
           ...customer.toObject(),
@@ -115,18 +107,16 @@ export async function getCustomersWithSpent(req, res, next) {
 
     res.status(200).json(customersWithSpent);
   } catch {
-    next(createHttpError(500, 'Ошибка загрузки клиентов с их тратами'));
+    next(createHttpError(500, 'Error loading customers with their spending'));
   }
 }
 
-
-// 📌 Получить все заказы (для Dashboard и страницы Orders)
 export async function getAllOrders(req, res) {
   try {
-    const orders = await Order.find().populate('customer'); // ✅ Теперь подтягивает имя клиента
+    const orders = await Order.find().populate('customer');
     res.status(200).json(orders);
   } catch {
-    res.status(500).json({ message: 'Ошибка загрузки заказов' });
+    res.status(500).json({ message: 'Error loading orders' });
   }
 }
 

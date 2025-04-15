@@ -3,7 +3,7 @@ import {
   getDashboardStatistics,
   getRecentCustomers,
   getIncomeExpenses,
-  getCustomersWithSpent, // ✅ Импортируем новый контроллер
+  getCustomersWithSpent, 
 } from '../controllers/dashboardController.js';
 
 const router = express.Router();
@@ -11,6 +11,6 @@ const router = express.Router();
 router.get('/statistics', getDashboardStatistics);
 router.get('/recent-customers', getRecentCustomers);
 router.get('/income-expenses', getIncomeExpenses);
-router.get('/customers-with-spent', getCustomersWithSpent); // ✅ Добавили маршрут
+router.get('/customers-with-spent', getCustomersWithSpent); 
 
 export default router;

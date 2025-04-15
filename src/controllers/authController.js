@@ -12,20 +12,16 @@ export async function createUserController(req, res, next) {
   try {
     const { name, email, password, phone } = req.body;
 
-    // Проверка существующего пользователя
-    const existingUser = await User.findOne({ 
-      $or: [
-        { email },
-        { phone }
-      ]
+    const existingUser = await User.findOne({
+      $or: [{ email }, { phone }],
     });
-    
+
     if (existingUser) {
       if (existingUser.email === email) {
-        throw createHttpError(409, 'Такой email уже используется');
+        throw createHttpError(409, 'This email is already in use');
       }
       if (existingUser.phone === phone) {
-        throw createHttpError(409, 'Такой номер телефона уже используется');
+        throw createHttpError(409, 'This phone number is already in use');
       }
     }
 
@@ -37,7 +33,6 @@ export async function createUserController(req, res, next) {
       password: hashedPassword,
     });
 
-    // Генерация токенов
     const accessToken = jwt.sign({ userId: newUser._id }, JWT_SECRET, {
       expiresIn: JWT_EXPIRES_IN,
     });
@@ -61,7 +56,7 @@ export async function createUserController(req, res, next) {
 
     res.status(201).json({
       status: 201,
-      message: 'Пользователь успешно зарегистрирован!',
+      message: 'User successfully registered!',
       data: {
         id: newUser._id,
         name: newUser.name,
@@ -81,29 +76,27 @@ export async function loginUserController(req, res, next) {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      throw createHttpError(400, 'Email и пароль обязательны');
+      throw createHttpError(400, 'Email and password are required');
     }
 
     const user = await User.findOne({ email });
     if (!user) {
-      // Очищаем старый refresh token при неудачной попытке входа
       res.clearCookie('refreshToken', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'None',
       });
-      throw createHttpError(401, 'Неправильный email или пароль');
+      throw createHttpError(401, 'Invalid email or password');
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      // Очищаем старый refresh token при неудачной попытке входа
       res.clearCookie('refreshToken', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'None',
       });
-      throw createHttpError(401, 'Неправильный email или пароль');
+      throw createHttpError(401, 'Invalid email or password');
     }
 
     const accessToken = jwt.sign({ userId: user._id }, JWT_SECRET, {
@@ -113,10 +106,8 @@ export async function loginUserController(req, res, next) {
       expiresIn: REFRESH_TOKEN_EXPIRES_IN,
     });
 
-    // Удаляем старую сессию если она существует
     await Session.deleteMany({ userId: user._id });
 
-    // Создаем новую сессию
     await Session.create({
       userId: user._id,
       accessToken,
@@ -125,19 +116,19 @@ export async function loginUserController(req, res, next) {
       refreshTokenValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     });
 
-    // Обновленные настройки куки
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 дней
+      maxAge: 30 * 24 * 60 * 60 * 1000,
       sameSite: 'None',
       path: '/',
-      domain: process.env.NODE_ENV === 'production' ? 'your-domain.com' : 'localhost'
+      domain:
+        process.env.NODE_ENV === 'production' ? 'your-domain.com' : 'localhost',
     });
 
     res.status(200).json({
       status: 200,
-      message: 'Пользователь успешно авторизован!',
+      message: 'User successfully authenticated!',
       data: {
         user: {
           id: user._id,
@@ -160,19 +151,18 @@ export async function logoutUserController(req, res, next) {
 
     let refreshToken = req.cookies.refreshToken;
 
-    // 🔹 Проверяем localStorage как fallback
     if (!refreshToken && req.headers.authorization) {
       refreshToken = req.headers.authorization.replace('Bearer ', '');
     }
 
     if (!refreshToken) {
-      console.error('🚨 Ошибка: Refresh token отсутствует!');
+      console.error('🚨 Error: Refresh token is missing!');
       return res.status(401).json({ error: 'Refresh token required' });
     }
 
     const session = await Session.findOneAndDelete({ refreshToken });
     if (!session) {
-      console.error('🚨 Ошибка: Сессия не найдена!');
+      console.error('🚨 Error: Session not found!');
       return res.status(401).json({ error: 'Invalid refresh token' });
     }
 
@@ -209,7 +199,6 @@ export async function refreshTokenController(req, res, next) {
       throw createHttpError(403, 'Invalid refresh token');
     }
 
-    // Проверка срока действия refreshToken
     if (new Date() > session.refreshTokenValidUntil) {
       console.log('Refresh token expired');
       await Session.deleteOne({ _id: session._id });

@@ -6,31 +6,31 @@ export const registerSchema = Joi.object({
     .pattern(/^[a-zA-Zа-яА-ЯёЁ\s'-]{2,30}$/)
     .required()
     .messages({
-      'string.pattern.base': 'Имя должно содержать только буквы и быть длиной от 2 до 30 символов.',
-      'string.empty': 'Имя обязательно для заполнения.',
+      'string.pattern.base':
+        'The name must contain only letters and be between 2 and 30 characters long.',
+      'string.empty': 'Name is required.',
     }),
-  email: Joi.string()
-    .email()
-    .required()
-    .messages({
-      'string.email': 'Неверный формат email.',
-      'string.empty': 'Email обязателен для заполнения.',
-    }),
+  email: Joi.string().email().required().messages({
+    'string.email': 'Invalid email format.',
+    'string.empty': 'Email is required.',
+  }),
   phone: Joi.string()
     .pattern(/^\+?[0-9]{10,15}$/)
     .required()
     .messages({
-      'string.pattern.base': 'Номер телефона должен содержать от 10 до 15 цифр и может начинаться с +.',
-      'string.empty': 'Номер телефона обязателен для заполнения.',
+      'string.pattern.base':
+        'Phone number must be between 10 and 15 digits and may start with +.',
+      'string.empty': 'Phone number is required.',
     }),
   password: Joi.string()
     .min(6)
     .pattern(/^(?=.*[A-Z])(?=.*[!@#$%^&*]).*$/)
     .required()
     .messages({
-      'string.min': 'Пароль должен содержать минимум 6 символов.',
-      'string.pattern.base': 'Пароль должен содержать хотя бы одну заглавную букву и один специальный символ.',
-      'string.empty': 'Пароль обязателен для заполнения.',
+      'string.min': 'Password must be at least 6 characters long.',
+      'string.pattern.base':
+        'Password must contain at least one uppercase letter and one special character.',
+      'string.empty': 'Password is required.',
     }),
 });
 

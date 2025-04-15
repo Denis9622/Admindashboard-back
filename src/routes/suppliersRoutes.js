@@ -8,9 +8,9 @@ import {
 
 const router = express.Router();
 
-router.get('/', getAllSuppliers); // Получить всех поставщиков
-router.post('/', createSupplier); // Добавить нового поставщика
-router.put('/:id', updateSupplier); // Обновить поставщика
-router.delete('/:id', deleteSupplier); // Удалить поставщика
+router.get('/', getAllSuppliers); 
+router.post('/', createSupplier); 
+router.put('/:id', updateSupplier); 
+router.delete('/:id', deleteSupplier); 
 
 export default router;

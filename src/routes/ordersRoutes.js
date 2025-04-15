@@ -4,31 +4,29 @@ import Customer from '../models/customer.js';
 
 const router = express.Router();
 
-// 📌 GET: Получить список заказов с клиентами
 router.get('/',  async (req, res) => {
   try {
-    const orders = await Order.find().populate('customer', 'name email'); // ✅ Подтягиваем имя и email клиента
+    const orders = await Order.find().populate('customer', 'name email');
     res.json(orders);
   } catch (error) {
-    console.error('Ошибка сервера при получении заказов:', error);
-    res.status(500).json({ message: 'Ошибка сервера' });
+    console.error('Server error while fetching orders:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
-// 📌 POST: Добавить новый заказ
 router.post('/',  async (req, res) => {
   try {
     const { customerId, address, products, orderDate, price, status } =
       req.body;
 
     if (!customerId)
-      return res.status(400).json({ message: 'customerId обязателен' });
+      return res.status(400).json({ message: 'customerId is required' });
 
     const customer = await Customer.findById(customerId);
-    if (!customer) return res.status(400).json({ message: 'Клиент не найден' });
+    if (!customer) return res.status(400).json({ message: 'Customer not found' });
 
     const newOrder = new Order({
-      customer: customer._id, // ✅ Связь с клиентом
+      customer: customer._id,
       address,
       products,
       orderDate,
@@ -39,12 +37,11 @@ router.post('/',  async (req, res) => {
 
     res.status(201).json(newOrder);
   } catch (error) {
-    console.error('Ошибка сервера при добавлении заказа:', error);
-    res.status(500).json({ message: 'Ошибка сервера' });
+    console.error('Server error while creating order:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
-// 📌 PUT: Обновить заказ
 router.put('/:id',  async (req, res) => {
   try {
     const updatedOrder = await Order.findByIdAndUpdate(
@@ -54,19 +51,18 @@ router.put('/:id',  async (req, res) => {
     );
     res.json(updatedOrder);
   } catch (error) {
-    console.error('Ошибка сервера при обновлении заказа:', error);
-    res.status(500).json({ message: 'Ошибка обновления' });
+    console.error('Server error while updating order:', error);
+    res.status(500).json({ message: 'Update error' });
   }
 });
 
-// 📌 DELETE: Удалить заказ
 router.delete('/:id',  async (req, res) => {
   try {
     await Order.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Заказ удален' });
+    res.json({ message: 'Order deleted' });
   } catch (error) {
-    console.error('Ошибка сервера при удалении заказа:', error);
-    res.status(500).json({ message: 'Ошибка удаления' });
+    console.error('Server error while deleting order:', error);
+    res.status(500).json({ message: 'Delete error' });
   }
 });
 
